@@ -19,7 +19,7 @@ module Barby
 
     register :to_svg, :bars_to_rects, :bars_to_path
 
-    attr_writer :title, :xdim, :ydim, :height, :rmargin, :lmargin, :tmargin, :bmargin, :xmargin, :ymargin, :margin
+    attr_writer :title, :xdim, :ydim, :height, :rmargin, :lmargin, :tmargin, :bmargin, :xmargin, :ymargin, :margin, :color, :bgcolor
 
 
     def to_svg(opts={})
@@ -37,8 +37,8 @@ module Barby
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="#{svg_width(opts)}px" height="#{svg_height(opts)}px" viewBox="0 0 #{svg_width(opts)} #{svg_height(opts)}" version="1.1">
 <title>#{escape title}</title>
 <g id="canvas" #{transform(opts)}>
-<rect x="0" y="0" width="#{full_width}px" height="#{full_height}px" fill="white" />
-<g id="barcode" fill="black">
+<rect x="0" y="0" width="#{full_width}px" height="#{full_height}px" fill="#{bgcolor}" />
+<g id="barcode" fill="#{color}">
 #{bars}
 </g></g>
 </svg>
@@ -83,7 +83,7 @@ EOT
 
     def bars_to_path(opts={})
       with_options opts do
-        %Q|<path stroke="black" stroke-width="#{xdim}" d="#{bars_to_path_data(opts)}" />|
+        %Q|<path stroke="#{color}" stroke-width="#{xdim}" d="#{bars_to_path_data(opts)}" />|
       end
     end
 
@@ -184,6 +184,13 @@ EOT
       barcode.two_dimensional? ? encoding.first.length : encoding.length
     end
 
+    def color
+      @color || 'black'
+    end
+
+    def bgcolor
+      @bgcolor || 'white'
+    end
 
     def svg_width(opts={})
       opts[:rot] ? full_height : full_width

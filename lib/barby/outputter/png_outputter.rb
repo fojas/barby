@@ -10,13 +10,13 @@ module Barby
 
     register :to_png, :to_image, :to_datastream
 
-    attr_accessor :xdim, :ydim, :width, :height, :margin
+    attr_accessor :xdim, :ydim, :width, :height, :margin, :color, :bgcolor
 
 
     #Creates a PNG::Canvas object and renders the barcode on it
     def to_image(opts={})
       with_options opts do
-        canvas = ChunkyPNG::Image.new(full_width, full_height, ChunkyPNG::Color::WHITE)
+        canvas = ChunkyPNG::Image.new(full_width, full_height, bgcolor)
 
         if barcode.two_dimensional?
           x, y = margin, margin
@@ -25,7 +25,7 @@ module Barby
               if bar
                 x.upto(x+(xdim-1)) do |xx|
                   y.upto y+(ydim-1) do |yy|
-                    canvas[xx,yy] = ChunkyPNG::Color::BLACK
+                    canvas[xx,yy] = color
                   end
                 end
               end
@@ -97,8 +97,27 @@ module Barby
       @margin || 10
     end
 
+    def color
+      ( parse_color @color ) || ChunkyPNG::Color::BLACK
+    end
+
+    def bgcolor
+      ( parse_color @bgcolor ) || ChunkyPNG::Color::WHITE
+    end
+
     def length
       barcode.two_dimensional? ? encoding.first.length : encoding.length
+    end
+
+    def parse_color color_string
+      return if color_string.nil?
+      hex = if matches = color_string.match(/#([0-9a-f]{3,6})/i)
+          ChunkyPNG::Color.parse matches[1]
+      # rgb/rgba
+      elsif matches = color_string.match(/rgba?\((\d{1,3}[,\s]+\d{1,3}[,\s]+\d{1,3})/)
+        r, g, b = matches[1].split(",").map {|color| color.strip }
+        ChunkyPNG::Color.parse "##{"%02x"%r}#{"%02x"%g}#{"%02x"%b}"
+      end
     end
 
 
